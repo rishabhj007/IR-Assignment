@@ -14,21 +14,38 @@ def preprocessing(doc):
         token = token.lower()
         token = ps.stem(token)
         doc2.append(token)
-
     return doc2
 
 
-def shingling(doc):
-    k = int(input("Input shingle size"))
-    shingles = set()
-    i = k
-    while i < len(doc):
-        shingles.add(tuple(doc[i-k:i]))
-        i+=1
-    return shingles
+def DNA_shingling(doc):
+    dataset = open(doc, encoding='utf-8')
+    lines = [line.rstrip('\n') for line in dataset]
+    dataset.close()
+
+    k = input("Input shingle size")
+
+    lines = lines[1:]
+    dict = {}
+    count = 0
+    for line in lines:
+        dna = line.split(" ")[0]
+        n = len(dna)
+        i = k
+        shingles = set()
+        while i < n:
+            shingles.add(dna[(i-k):i])
+            i+=1
+        dict[count] = shingles
+        count+=1
+    return dict
+
+
+def minhash(set):
+
+    return
 
 
 if __name__ == '__main__':
     doc = input("Input doc")
     doc = preprocessing(doc)
-    print(shingling(doc))
+    print(DNA_shingling(doc))
