@@ -3,23 +3,8 @@ from nltk import PorterStemmer
 import string
 import re
 import random
-import sympy
 import numpy as np
-
-global shingle_dict
-global lines
-
-
-def generate_hash_func(size):
-    a = random.randint(1, size)
-    b = random.randint(1, size)
-    c = sympy.nextprime(size)
-
-    hash_list = []
-    for i in range(0, size):
-        hash_list.append((a*i+b) % c)
-
-    return hash_list
+import time
 
 
 def preprocessing(doc):
@@ -34,6 +19,39 @@ def preprocessing(doc):
         doc2.append(token)
     return doc2
 
+
+# sattolo_algo is used to generate a random shuffling of
+# an array of elements 0 to size-1.
+# input : int size which is the number of shingles
+# return : a numpy array in of elements in range 0 to size - 1
+#          both inclusive shuffled in a random order.
+
+
+def sattolo_algo(size):
+    hash_list = np.arange(size)
+    for i in range(0, size - 1):
+        j = random.randrange(i + 1, size)  # i+1 instead of i
+        hash_list[i], hash_list[j] = hash_list[j], hash_list[i]
+    return hash_list
+
+
+# sattolo_algo_arr is used to generate a random shuffling of
+# an array of elements 0 to size-1 but the input is different then
+# the other function
+# input : a numpy array of elements in range 0 to size - 1
+# return : a numpy array in of elements in range 0 to size - 1
+#          both inclusive shuffled in a random order.
+
+
+def sattolo_algo_arr(hash_list):
+    size = np.size(hash_list)
+    random.seed(time.time())
+    for i in range(0, size - 1):
+        j = random.randrange(i + 1, size)  # i+1 instead of i
+        hash_list[i], hash_list[j] = hash_list[j], hash_list[i]
+    return hash_list
+
+
 # DNA_shingling:
 # input : doc - the link to the dataset
 #         k - the shingle size usually between 5 - 9
@@ -41,9 +59,8 @@ def preprocessing(doc):
 #           the set of shingles as the paired value
 
 
-def DNA_shingling(doc,k):
+def DNA_shingling(doc, k):
     dataset = open(doc, encoding='utf-8')
-    global lines
     lines = [line.rstrip('\n') for line in dataset]
     dataset.close()
 
@@ -56,11 +73,12 @@ def DNA_shingling(doc,k):
         i = k
         shingles = set()
         while i < n:
-            shingles.add(dna[(i-k):i])
-            i+=1
+            shingles.add(dna[(i - k):i])
+            i += 1
         hashmap[count] = shingles
-        count+=1
+        count += 1
     return hashmap
+
 
 # vectorizer:
 # input : a dictionary of with key as integer denoting a document
@@ -77,29 +95,44 @@ def vectorizer(hashmap):
         mega_set.update(shingles)
     n = len(mega_set)
     k = len(hashmap)
-    arr = np.empty((n,k),dtype=np.int8)
-    global shingle_dict
+    arr = np.empty((n, k), dtype=np.int8)
+    shingle_dict = {}
     count = 0
     for shingle in mega_set:
         shingle_dict[count] = shingle
-        for i in range (0,k):
+        for i in range(0, k):
             if shingle in hashmap[i]:
-                arr[count,i] = 1
+                arr[count, i] = 1
             else:
-                arr[count,i] = 0
-        count+=1
+                arr[count, i] = 0
+        count += 1
     return arr
 
-#TODO
+
 def min_hash(arr):
-    x,y = arr.shape() # x = number of shingles,y = number of documents
-    sig_mat = np.empty((100,y),dtype=np.int32)
+    x, y = arr.shape  # x = number of shingles,y = number of documents
 
-    for i in range (0,100):
-        generate_hash_func(x)
+    sig_mat = np.empty((100, y), dtype=np.int32)
+    sig_mat.fill(2147483647)
+    hash_mat = np.empty((100, x), dtype=np.int32)
 
+    hash_list = sattolo_algo(x)
 
+    for i in range(0, 100):
+        hash_list = sattolo_algo_arr(hash_list)
+        hash_mat[i] = np.array(hash_list)
 
-if __name__ == '__main__':
-    for i in range (0,10):
-        print(generate_hash_func(8))
+    hash_mat = np.transpose(hash_mat)
+
+    # hash_mat has a dimensions of x rows and 100 columns
+    # sig_mat has a dimensions of 100 rows and y columns
+
+    for i in range(0, x):
+        for j in range(0, y):
+            if arr[i, j] == 1:
+                for k in range(0, 100):
+                    val = hash_mat[i, k]
+                    if sig_mat[k, j] > val:
+                        sig_mat[k, j] = val
+
+    return sig_mat
