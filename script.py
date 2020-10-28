@@ -136,3 +136,11 @@ def min_hash(arr):
                         sig_mat[k, j] = val
 
     return sig_mat
+
+
+def jaccard_sim(vec1,vec2):
+    a = 0
+    for i in range (0,100):
+        if vec1[i] == vec2[i]:
+            a += 1
+    return a/100
