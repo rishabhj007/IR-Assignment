@@ -5,7 +5,7 @@ if __name__ == '__main__':
 
     file = 'dataset.txt'
 
-    k = input('Input shingle size, mostly between 4-8')
+    k = int(input('Input shingle size, mostly between 4-8'))
     hashmap = script.DNA_shingling(file, k)
     arr = script.vectorizer(hashmap)
     sim_mat = script.min_hash(arr)
@@ -14,7 +14,7 @@ if __name__ == '__main__':
     commonset = set()
     sim_mat = numpy.load('Similarity Matrix.npy')
     band = int(input("Input the band size"))  # take = 5
-    sim_threshold = input("Input the similarity threshold. A value between \'0.7\'-\'0.9\'")  # take = 0.8
+    sim_threshold = float(input("Input the similarity threshold. A value between \'0.7\'-\'0.9\'"))  # take = 0.8
 
     for i in range(0, int(100 / band)):
         hashtable = {}
