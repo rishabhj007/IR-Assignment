@@ -1,4 +1,4 @@
-import script
+from Assignment_2 import script
 import numpy
 
 if __name__ == '__main__':
